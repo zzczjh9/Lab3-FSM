@@ -5,7 +5,7 @@
 ---
 ## Lab 3 - Finite State Machines (FSM)
 
-**_Peter Cheung, V1.0 - 2 Nov 2022_**
+**_Peter Cheung, V1.1 - 24 Oct 2024_**
 
 ---
 
@@ -13,6 +13,8 @@
 
 ## Objectives
 By the end of this experiment, you should be able to:
+
+* be aware of industry standard testing techniques
 * design and test a PRBS generator using a linear feedback shift register (LFSR)
 * display 8-bit value on neopixel bar on Vbuddy
 * specify a FSM in SystemVerilog
@@ -21,35 +23,84 @@ By the end of this experiment, you should be able to:
 * automatically cycle through F1 lights at 1 second interval
 * optionally implement the full F1 starting light machine and test your reaction.
 
-Clone this repo to your local disk.  **_Note that Vbuddy.cpp file in this repo is new and is version 1.1._**
+Clone this repo to your local disk.  
+**_Note that Vbuddy.cpp file in this repo is new and is version 1.1._**
+
+---
+## Task 0 - Setup GTest
+---
+
+### Introduction
+
+Hardware design is often a process that takes years from design to fabrication
+(except [FPGAs](https://en.wikipedia.org/wiki/Field-programmable_gate_array)),
+so any errors would be costly in time and money.
+
+Therefore a lot of time in industry is trying to minimise errors in hardware, by
+catching them before they are sent out to fabrication. Whilst there are plenty of
+techniques, this is beyond the scope of the course. We will introduce a basic
+approach to testing, also known as **verification**. There will be no need to
+write any tests for this lab.
+
+---
+
+The assessed coursework will be verified using a framework, called GTest. GTest
+is an industry standard, with programs such as LLVM tested using GTest 
+([source](https://llvm.org/docs/TestingGuide.html)). Make sure, you have it
+installed, by running the following command:
+
+```sh
+# Ubuntu
+sudo apt install libgtest-dev
+
+# MacOs
+brew install googletest
+```
+
+Then navigate to task0 and open the [`main.cpp`](task0/main.cpp) file. Add a
+test case in this block. Take your time to understand the gist of this code.
+
+```cpp
+TEST_F(TestAdd, AddTest2)
+{
+    // Create a test case here. Maybe fail this to see what happens?
+}
+```
+
+Then run the `doit.sh` file, you should get something like (assuming you 
+created a passing testcase):
+
+```
+[==========] Running 2 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 2 tests from TestAdd
+[ RUN      ] TestAdd.AddTest
+[       OK ] TestAdd.AddTest (0 ms)
+[ RUN      ] TestAdd.AddTest2
+[       OK ] TestAdd.AddTest2 (0 ms)
+[----------] 2 tests from TestAdd (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 2 tests from 1 test suite ran. (0 ms total)
+[  PASSED  ] 2 tests.
+```
 
 ---
 ## Task 1 - 4-bit LFSR and Pseudo Random Binary Sequence
 ---
 
-**Step 1 - create the component lfsr.sv**
+**Step 1 - Create the component lfsr.sv**
 
-Open the _Lab3-FSM_ folder in VS code. In folder **_task1_**, create the component **__lfsr.sv__** guided by Lecture 4 slide 14. Modify the version in the lecture notes to include an extra enable signal **_en_**, and all four bits of the shift register output are brought out as data_out[3:0].  This is your top-level circuit for this task.
+Open the _Lab3-FSM_ folder in VS code. In folder **_task1_**, create the component **__lfsr.sv__** guided by Lecture 4 slide 14. This is your top-level circuit for this task, as described:
+
+- All four bits of the shift register output are brought out as data_out[3:0].
+- Reset brings the state back to 1 (not 0).
 
 <p align="center"> <img src="images/lfsr.jpg" /> </p>
 
-**Step 2 - Create the testbench for the LFSR**
+**Step 2 - Verify the LFSR**
 
-Create a testbench to test this 4-bit random number generator.  In your testbench you should use the Vbuddy rotary encoder switch (EC11) and the **_vbdFlag()_** function in one-shot mode (i.e. using **_vbdSetMode(1)_**) to drive the **_en_** signal to step through the random sequence each time you press the switch on Vbuddy.
-
-The four bit output of the random sequence can be shown on the 7-segment display using the **_vbdHex( )_** function as:
-```C++
-      vbdHex(1, top->data_out & 0xF);
-```
-Furthermore, you should also display this 4-bit result on the neopixel strip using the **_vdbBar( )_** function:
-```C++
-      vbdBar(top->data_out & 0xFF);
-```
-Note that **_vbdBar()_** takes an unsigned 8-bit integer parameter between the value 0 and 255. Therefore you must mask _data_out_ with 0xFF.
-
-**Step 3 - Create the doit.sh script**
-
-Modify the doit.sh file from Lab 2 so that the name of the Device-Under-Test (DUT) is now _lsfr_.  Build your simulation model and test your design.
+Use the attached testbench script ([`verify.sh`](task1/verify.sh)) to check your answer.
 
 ___
 
@@ -57,7 +108,11 @@ ___
 
 ___
 
-Based on the **_primitive polynomial_** table in Lecture 4 slide 16, modify **_lfsr.sv_** into a 7-bit (instead of 4-bit) PRBS generator. Test your design.  The 7th order primitive polynomial is:
+Based on the **_primitive polynomial_** table in Lecture 4 slide 16, 
+modify [**_lfsr_7.sv_**](task1/lfsr_7.sv) into a 7-bit (instead of 4-bit) 
+PRBS generator. 
+Test your design, using the [`verify_7.sh`](task1/verify_7.sh) script.
+The 7th order primitive polynomial is:
 
 <p align="center"> <img src="images/equation.jpg" /> </p>
 
@@ -65,17 +120,36 @@ Based on the **_primitive polynomial_** table in Lecture 4 slide 16, modify **_l
 ## Task 2 - Formula 1 Light Sequence
 ---
 
+**Step 1 - Create the component f1_fsm.sv**
+
 Formula 1 (F1) racing has starting light consists of a series of red lights that turn ON one by one, until all lights are ON. Then all of them turn OFF simultaneously after a random delay.
 
 The goal of this task is to design a FSM that cycles through the sequence according to the following FSM:
 
 <p align="center"> <img src="images/state_diag.jpg" /> </p>
 
-Based on the notes from Lecture 5, implement this state machine in SystemVerilog to drive the neopixel bar and cycle through the F1 light sequence.  You should use the switch on the rotary switch with the **_vbdFlag()_** function (in mode 1) to drive the _en_ signal as shown below:
+Based on the notes from Lecture 5, implement this state machine in SystemVerilog.
+
+**Step 2 - Verify the FSM**
+
+Use the attached testbench script ([`verify.sh`](task2/verify.sh)) to check your answer.
+
+**Step 3 - Connect the FSM to Vbuddy**
+
+Drive the neopixel bar and cycle through the F1 light sequence.  You should use the switch on the rotary switch with the **_vbdFlag()_** function (in mode 1) to drive the _en_ signal as shown below:
 
 <p align="center"> <img src="images/F1_FSM.jpg" /> </p>
 
-Write the testbench **_f1_fsm_tb.cpp_**. Compile and test your design.  Each time you press the switch, you should step through the FSM and cycle through the F1 light sequence.
+Write the testbench **_f1_fsm_tb.cpp_**, similar to how you wrote your other
+testbenches in Lab1/Lab2.
+
+Compile and test your design.  Each time you press the switch, you should step through the FSM and cycle through the F1 light sequence.
+
+You should also display this result on the neopixel strip using the **_vdbBar( )_** function:
+```C++
+      vbdBar(top->data_out & 0xFF);
+```
+Note that **_vbdBar()_** takes an unsigned 8-bit integer parameter between the value 0 and 255. Therefore you must mask _data_out_ with 0xFF.
 
 ---
 ## Task 3 - Exploring the **_clktick.sv_** and the **_delay.sv_** modules
