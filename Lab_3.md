@@ -91,9 +91,10 @@ created a passing testcase):
 
 **Step 1 - Create the component lfsr.sv**
 
-Open the _Lab3-FSM_ folder in VS code. In folder **_task1_**, create the component **__lfsr.sv__** guided by Lecture 4 slide 14. This is your top-level circuit for this task, as described:
+Open the _Lab3-FSM_ folder in VS code. In folder **_task1_**, create the component **__lfsr.sv__** guided by Lecture 4 slide 17. This is your top-level circuit for this task, as described:
 
 - All four bits of the shift register output are brought out as data_out[3:0].
+- `en` is the enable signal.
 - Reset brings the state back to 1 (not 0).
 
 <p align="center"> <img src="images/lfsr.jpg" /> </p>
@@ -145,7 +146,7 @@ testbenches in Lab1/Lab2.
 
 Compile and test your design.  Each time you press the switch, you should step through the FSM and cycle through the F1 light sequence.
 
-You should also display this result on the neopixel strip using the **_vdbBar( )_** function:
+You should also display this result on the neopixel strip using the **_vbdBar( )_** function:
 ```C++
       vbdBar(top->data_out & 0xFF);
 ```
