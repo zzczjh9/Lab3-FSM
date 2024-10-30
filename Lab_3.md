@@ -5,7 +5,7 @@
 ---
 ## Lab 3 - Finite State Machines (FSM)
 
-**_Peter Cheung, V1.1 - 24 Oct 2024_**
+**_Peter Cheung, @saturn691, V1.2 - 30 Oct 2024_**
 
 ---
 
@@ -24,7 +24,6 @@ By the end of this experiment, you should be able to:
 * optionally implement the full F1 starting light machine and test your reaction.
 
 Clone this repo to your local disk.  
-**_Note that Vbuddy.cpp file in this repo is new and is version 1.1._**
 
 ---
 ## Task 0 - Setup GTest
@@ -52,6 +51,8 @@ installed, by running the following command:
 ```sh
 # Ubuntu
 sudo apt install libgtest-dev
+# If it doesn't work right away, see this blog post:
+# https://stackoverflow.com/questions/13513905/how-to-set-up-googletest-as-a-shared-library-on-linux
 
 # MacOs
 brew install googletest
@@ -95,7 +96,8 @@ Open the _Lab3-FSM_ folder in VS code. In folder **_task1_**, create the compone
 
 - All four bits of the shift register output are brought out as data_out[3:0].
 - `en` is the enable signal.
-- Reset brings the state back to 1 (not 0).
+- Reset is asynchronous (hint: add it to the sensitivity list) and brings the
+state back to 1 (not 0).
 
 <p align="center"> <img src="images/lfsr.jpg" /> </p>
 
@@ -197,7 +199,7 @@ The follow diagram shows a full version of the F1 light design that combines all
 
 <p align="center"> <img src="images/F1_full.jpg" /> </p>
 
-The **_delay.sv_** module is provided. This module is from  Lecture 5 slides 16 & 17. When trigger is asserted (goes from low to high), it starts counting K clock cycles.  At which time, *time_out* goes high for one clcok cycle. This works in a similar way to clktick.sv, except:
+The **_delay.sv_** module is provided. This module is from  Lecture 5 slides 16 & 17. When trigger is asserted (goes from low to high), it starts counting K clock cycles.  At which time, *time_out* goes high for one clock cycle. This works in a similar way to clktick.sv, except:
 1. Instead of the _en_ signal, we use a _trigger_ signal, which is edge.
 2. The FSM can only be triggered again after the _trigger_signal has returned to zero.
 
@@ -214,3 +216,4 @@ Finally, in the testbench, you may use two new Vbuddy functions added in version
 2. User reacts to the lights going OFF and presses the switch as quickly as possible. **_Vbuddy_** automatically records the elapsed time since the stop watch started.
 3. The testbench calls **_vbdElapsed()_** function to read the reaction time in milliseconds.
 4. The testbench reports by sending it to Vbuddy as a message on the TFT screen.
+You may want to display this in binary, using a binary to BCD converter, or in hex.

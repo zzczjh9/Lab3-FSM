@@ -1,4 +1,4 @@
-module lfsr (
+module lfsr_7 (
     input   logic       clk,
     input   logic       rst,
     input   logic       en,
