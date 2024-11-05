@@ -24,7 +24,7 @@ int main(int argc, char **argv, char **env) {
  
   // init Vbuddy
   if (vbdOpen()!=1) return(-1);
-  vbdHeader("L3T3:Auto_f1");       // Flag mode set to one-shot
+  vbdHeader("L3T3:Auto_f1");       
 
   // initialize simulation input 
   top->clk = 1;
